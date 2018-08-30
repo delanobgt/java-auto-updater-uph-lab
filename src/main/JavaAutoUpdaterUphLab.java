@@ -19,10 +19,12 @@ public class JavaAutoUpdaterUphLab {
 
     private static final String COMPLETE_FILE = "complete.uph";
     private static final String VERSION_FILE = "version.uph";
-    private static final String CURRENT_DIST_FOLDER = "dist1";
-    private static final String NEW_DIST_FOLDER = "dist1-new";
-    private static final String NEW_ZIP_FILE = "dist1-new.zip";
+    private static final String CURRENT_DIST_FOLDER = "dist";
+    private static final String NEW_DIST_FOLDER = "dist-new";
+    private static final String NEW_ZIP_FILE = "dist-new.zip";
     
+    private static final String URL_VERSION_FILE = "https://dl.dropboxusercontent.com/s/wsiie9jazzdrsmv/version.uph?dl=0";
+    private static final String URL_NEW_ZIP_FILE = "https://dl.dropboxusercontent.com/s/4gc4ir1hiaa74z1/dist.zip?dl=0";
     public static void main(String[] args) {
         if (doesFileExist(new File(COMPLETE_FILE))) {
             deleteFileDir(new File(CURRENT_DIST_FOLDER));
@@ -31,19 +33,25 @@ public class JavaAutoUpdaterUphLab {
         }
 
         try {
-            ProcessBuilder pb = new ProcessBuilder("javaw", "-jar", "D:\\lab-client\\dist1\\java-UPH-computer-lab-client.jar");
+            ProcessBuilder pb = new ProcessBuilder(
+                    "javaw", 
+                    "-jar", 
+                    String.format("D:\\uph-lab-client\\%s\\java-UPH-computer-lab-client.jar", CURRENT_DIST_FOLDER));
             Process p = pb.start();
         } catch (IOException ex) {
             System.out.println(ex);
         }
         
         new Thread(() -> {
+            if (!new File(VERSION_FILE).exists()) 
+                makeFile(new File(VERSION_FILE));
             String localVersion = readFirstLine(VERSION_FILE);
-            downloadUsingNIO("https://dl.dropboxusercontent.com/s/kgilyuakdfl2cin/version.uph?dl=0", new File(VERSION_FILE));
+            downloadUsingNIO(URL_VERSION_FILE, new File(VERSION_FILE));
+            Utility.hideFile(new File(VERSION_FILE));
             String cloudVersion = readFirstLine(VERSION_FILE);
             if (!localVersion.equals(cloudVersion)) {
                 System.out.println("different version!");
-                downloadUsingNIO("https://dl.dropboxusercontent.com/s/w5ho1hozvh7br14/dist1-new.zip?dl=0", new File(NEW_ZIP_FILE));
+                downloadUsingNIO(URL_NEW_ZIP_FILE, new File(NEW_ZIP_FILE));
                 try {
                     UnzipUtility.unzip(NEW_ZIP_FILE, NEW_DIST_FOLDER);
                     makeFile(new File(COMPLETE_FILE));
